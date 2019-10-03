@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+
+package session_manager;
+
+// Singup request message
+message SignupInput {
+    string username = 1;
+    string password = 2;
+    string device_name = 3;
+}
+
+// Login response message
+message SignupOutput {
+    int32 status = 1;
+    string access_token = 2;
+}
+
+
+// Login request message
+message LoginInput {
+    string username = 1;
+    string password = 2;
+    string device_name = 3;
+}
+
+// Login response message
+message LoginOutput {
+    int32 status = 1;
+    string access_token = 2;
+}
+
+// Logout request message
+message LogoutInput {
+    string device_name = 1;
+}
+
+// Logout response message
+message LogoutOutput {
+    int32 status = 1;
+}
+
+
+
+// Classify request message
+message ClassifyInput {
+    bytes Content = 1;
+}
+
+
+// Classify response
+
+message ClassifyOutput {
+    int32 token = 1;
+}
+
+service SessionManager {
+    // Service definitions
+    rpc SignUP(SignupInput) returns (SignupOutput){}
+    rpc Login(LoginInput) returns (LoginOutput) {}
+    rpc Logout(LogoutInput) returns (LogoutOutput) {}
+    rpc Classify(ClassifyInput) returns (ClassifyOutput) {}
+   
+} 

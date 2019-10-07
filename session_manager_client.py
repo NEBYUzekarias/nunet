@@ -18,6 +18,7 @@ def run():
         #                                         password=u'26535986',
         #                                         device_name = 'samsung'        ))
 
+<<<<<<< HEAD
         response = stub.Login(sm_pb2.LoginInput(username='nebyu zakarias zewde',
                                                 password=u'26535986',
                                                 device_name = 'samsung'   ))
@@ -25,6 +26,15 @@ def run():
         # response = stub.Logout(sm_pb2.LogoutInput(device_name = 'sam'   ))
         
         print("Greeter client received: " + str(response.status))
+=======
+        # response = stub.Login(sm_pb2.LoginInput(username='nebyu zakarias zewde',
+        #                                         password=u'26535986',
+        #                                         device_name = 'samsung'   ))
+
+        r,_ = stub.Logout.with_call(sm_pb2.LogoutInput(device_name = 'samsung'   ) , metadata=(("access_token", "MNVQEZA0AJIMUTKm"),))
+        
+        print("Greeter client received: " + str(r.status) )
+>>>>>>> 96c580dcb754ad5836754600bfc49c72d44aadd4
 
 
 if __name__ == '__main__':

@@ -120,6 +120,41 @@ class SessionManagerServicer(sm_pb2_grpc.SessionManagerServicer):
                        update={"access_token": ""})
         return sm_pb2.LogoutOutput(status=Status.OK)
 
+<<<<<<< HEAD
+=======
+    def Classify(self, request, context):
+        cred, device, access_token = self.validate_access(context)
+        if not access_token:
+            return self.set_grpc_context(context,
+                                         sm_pb2.ClassifyOutput(),
+                                         "Invalid access!",
+                                         grpc.StatusCode.PERMISSION_DENIED)
+        
+        status, response, msg = self.send_detection_command(cred,
+                                                          device,
+                                                          [request.Content])
+
+        if not status:
+            return self.set_grpc_context(context,
+                                         sm_pb2.UtteranceOutput(),
+                                         msg,
+                                         grpc.StatusCode.PERMISSION_DENIED)
+
+        return sm_pb2.ClassifyOutput(token =response.token)
+
+
+    
+
+    def send_detection_command(self, cred, device, params):
+        if cred.active_device not in ["", device.device_name]:
+            return False, None, "Another Device is activated!"
+        if cred.active_device == "":
+            self.set_active_device(device.username, device.device_name)
+        
+        return True, "hold", ""
+        
+
+>>>>>>> 96c580dcb754ad5836754600bfc49c72d44aadd4
     
     def validate_access(self, context):
         access_token = self.get_access_token(context.invocation_metadata())

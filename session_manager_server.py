@@ -45,7 +45,18 @@ class SessionManagerServicer(sm_pb2_grpc.SessionManagerServicer):
     def __init__(self, db_session, timeout=20):
         self.db = db_session
         self.timeout = timeout
+    
+    
+    def SignUP(self , request, context):
 
+        if self.db.add(Credential, username=request.username, password=self.db.hash_password(request.password)):
+            log.info("Credential with username '{}' added.".format(request.username))
+            return sm_pb2.SignupOutput(status= Status.OK , access_token = "dkja" )
+        else:
+            log.error("Error adding '{}'!".format(request.username))
+            return sm_pb2.SignupOutput(status= Status.CANCELLED , access_token = "" )
+
+        
     def Login(self, request, context):
         cred = self.db.query(Credential,
                              username=request.username,
@@ -88,16 +99,7 @@ class SessionManagerServicer(sm_pb2_grpc.SessionManagerServicer):
             log.warning("Device '{}' is already logged in.".format(
                 request.device_name))
 
-        # Checking if no Ghost Session was initialized yet
-        if not cred.session_id:
-            log.info("Calling start_session: '{}'".format(request.device_name))
-            if not self.start_session(cred.username):
-                return self.set_grpc_context(
-                    context,
-                    sm_pb2.LoginOutput(status=Status.OK,
-                                       access_token=access_token),
-                    "Opencog Services offline!",
-                    grpc.StatusCode.OK)
+      
         return sm_pb2.LoginOutput(status=Status.OK, access_token=access_token)
 
     def Logout(self, request, context):
@@ -118,7 +120,46 @@ class SessionManagerServicer(sm_pb2_grpc.SessionManagerServicer):
                        update={"access_token": ""})
         return sm_pb2.LogoutOutput(status=Status.OK)
 
-      
+    
+    def validate_access(self, context):
+        access_token = self.get_access_token(context.invocation_metadata())
+        if not access_token:
+            log.error("No access token!")
+            return None, None, None
+        device = self.db.query(Device, access_token=access_token)
+        if not device:
+            log.error("Device not registered!")
+            return None, None, None
+        cred = self.db.query(Credential, username=device.username)
+        if not cred:
+            log.error("User not registered!")
+            return None, None, None
+        return cred, device, access_token
+
+    # Set the active_device column of Credential with the device_name
+    def set_active_device(self, username, device_name):
+        log.info("Setting {}.active_device to '{}'".format(username,
+                                                           device_name))
+        return self.db.update(Credential,
+                              where={"username": username},
+                              update={"active_device": device_name})
+
+    
+    @staticmethod
+    def set_grpc_context(context, message_type, msg, code=None):
+        log.warning(msg)
+        context.set_details(msg)
+        if code:
+            context.set_code(code)
+        return message_type
+    # Checks if the incoming request is valid
+
+    @staticmethod
+    def get_access_token(metadata):
+        for key, value in metadata:
+            if key == "access_token" and value:
+                return value
+        return None
 
 class SessionManagerServer:
     def __init__(self,
@@ -131,7 +172,7 @@ class SessionManagerServer:
         self.db = Database(db_file=db_file, db_create=db_create)
         self.port = port
         self.server = None
-
+        self.timeout = 30
     def start_server(self):
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=20))
         

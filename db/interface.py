@@ -47,13 +47,13 @@ class Database:
     @staticmethod
     def check_password(password, hashed):
         if not isinstance(password, bytes):
-            password = password.encode()
-        return bcrypt.checkpw(password, hashed)
+            password = password.encode('utf-8')
+        return bcrypt.checkpw(password, hashed )
 
     @staticmethod
     def hash_password(password):
         if not isinstance(password, bytes):
-            password = password.encode()
+            password = password.encode('utf-8')
         return bcrypt.hashpw(password, bcrypt.gensalt())
 
     def drop(self):

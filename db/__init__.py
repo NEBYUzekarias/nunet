@@ -11,6 +11,7 @@ class Credential(Base):
                       unique=True,
                       nullable=False)
     password = Column(String(256), nullable=False)
+    token = Column(Integer, default=20)
     session_id = Column(Integer, default=0)
     active_device = Column(String(256), default="")
     devices = relationship("Device",
@@ -21,9 +22,11 @@ class Credential(Base):
 
     def __repr__(self):
         return "USERNAME     : {}\n" \
+               "TOKEN        : {}\n" \
                "SESSION_ID   : {}\n" \
                "ACTIVE_DEVICE: {}\n" \
                "DEVICES      : {}\n".format(self.username,
+                                            self.token,
                                             self.session_id,
                                             self.active_device,
                                             self.devices)
